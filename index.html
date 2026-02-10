@@ -109,7 +109,7 @@
         <div class="config-banner" id="configBanner">
             <h3>⚙️ Configuração Necessária</h3>
             <p>Configure o Supabase para começar</p>
-            <button onclick="openConfigModal()">Configurar Agora</button>
+            <button id="btnConfig">Configurar Agora</button>
         </div>
 
         <div class="header" id="mainHeader" style="display: none;">
@@ -126,8 +126,8 @@
                 </div>
             </div>
             <div class="header-buttons">
-                <button class="btn btn-share-link" onclick="openShareCatalogModal()">🔗 Link Catálogo</button>
-                <button class="btn btn-secondary" onclick="openConfigModal()">⚙️ Config</button>
+                <button class="btn btn-share-link" id="btnShareCatalog">🔗 Link Catálogo</button>
+                <button class="btn btn-secondary" id="btnConfig2">⚙️ Config</button>
             </div>
         </div>
 
@@ -137,8 +137,8 @@
         </div>
 
         <div class="tabs" id="adminTabs" style="display: none;">
-            <div class="tab active" onclick="showTab('cadastro')">➕ Cadastrar</div>
-            <div class="tab" onclick="showTab('catalogo')">📋 Catálogo</div>
+            <div class="tab active" id="tabCadastro">➕ Cadastrar</div>
+            <div class="tab" id="tabCatalogo">📋 Catálogo</div>
         </div>
 
         <div id="cadastro" class="form-section">
@@ -153,7 +153,7 @@
                 </div>
                 <div class="form-group">
                     <label>💰 Valor de Venda</label>
-                    <input type="text" id="valor" placeholder="R$ 0,00" oninput="formatCurrency(this)" required>
+                    <input type="text" id="valor" placeholder="R$ 0,00" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -185,7 +185,7 @@
                     <label>📸 Fotos (até 5)</label>
                     <div class="photo-upload-area">
                         <div>📷 Toque para adicionar fotos</div>
-                        <input type="file" id="fotos" accept="image/*" multiple onchange="previewPhotos(this, 'photoPreviewGrid')">
+                        <input type="file" id="fotos" accept="image/*" multiple>
                     </div>
                     <div class="photo-preview-grid" id="photoPreviewGrid"></div>
                 </div>
@@ -194,7 +194,7 @@
         </div>
 
         <div id="catalogo" class="form-section">
-            <div class="search-bar"><input type="text" id="searchInput" placeholder="Buscar imóvel..." oninput="filterProperties()"></div>
+            <div class="search-bar"><input type="text" id="searchInput" placeholder="Buscar imóvel..."></div>
             <div class="loading" id="loadingState"><div class="spinner"></div><p>Carregando...</p></div>
             <div class="property-list" id="propertyList"></div>
             <div class="empty-state" id="emptyState" style="display: none;">
@@ -207,19 +207,19 @@
         <a href="#" class="contact-btn" id="contactBtn" style="display: none;">📱 Chamar no WhatsApp</a>
     </div>
 
-    <button class="fab" id="fabAdd" onclick="showTab('cadastro')">+</button>
+    <button class="fab" id="fabAdd">+</button>
 
     <div class="modal" id="configModal">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">⚙️ Configurar</div>
-                <button class="modal-close" onclick="closeConfigModal()">×</button>
+                <button class="modal-close" id="closeConfig">×</button>
             </div>
             <div class="form-group"><label>URL do Projeto</label><input type="text" id="supabaseUrl" placeholder="https://xxx.supabase.co"></div>
             <div class="form-group"><label>Chave Anon</label><input type="text" id="supabaseKey" placeholder="eyJ..."></div>
             <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="whatsappNumber" placeholder="5551999999999"></div>
             <div class="form-group"><label>Nome / Empresa</label><input type="text" id="ownerName" placeholder="João"></div>
-            <button class="btn btn-primary" onclick="saveConfig()">💾 Salvar</button>
+            <button class="btn btn-primary" id="saveConfig">💾 Salvar</button>
         </div>
     </div>
 
@@ -227,12 +227,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">🔗 Compartilhar</div>
-                <button class="modal-close" onclick="closeShareCatalogModal()">×</button>
+                <button class="modal-close" id="closeShare">×</button>
             </div>
             <p style="color: #8892b0; margin-bottom: 16px; font-size: 0.9rem;">Corretores vão <strong>visualizar</strong> (sem editar)</p>
             <div class="share-link-box" id="catalogLinkBox"></div>
-            <button class="btn btn-primary" onclick="copyCatalogLink()">📋 Copiar Link</button>
-            <button class="btn btn-whatsapp" onclick="shareCatalogWhatsApp()">📱 WhatsApp</button>
+            <button class="btn btn-primary" id="copyLink">📋 Copiar Link</button>
+            <button class="btn btn-whatsapp" id="shareWhatsApp">📱 WhatsApp</button>
         </div>
     </div>
 
@@ -240,13 +240,13 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">✏️ Editar</div>
-                <button class="modal-close" onclick="closeEditModal()">×</button>
+                <button class="modal-close" id="closeEdit">×</button>
             </div>
             <form id="editForm">
                 <input type="hidden" id="editId">
                 <div class="form-group"><label>📍 Nome</label><input type="text" id="editNome" required></div>
                 <div class="form-group"><label>🗺️ Endereço</label><input type="text" id="editEndereco" required></div>
-                <div class="form-group"><label>💰 Valor</label><input type="text" id="editValor" oninput="formatCurrency(this)" required></div>
+                <div class="form-group"><label>💰 Valor</label><input type="text" id="editValor" required></div>
                 <div class="form-row">
                     <div class="form-group"><label>📋 Avaliação</label><select id="editAvaliacao"><option value="sim">✅ Sim</option><option value="nao">❌ Não</option><option value="andamento">⏳</option></select></div>
                     <div class="form-group"><label>📄 Matrícula</label><select id="editTemMatricula"><option value="sim">✅ Sim</option><option value="nao">❌ Não</option><option value="terceiro">👤</option></select></div>
@@ -254,9 +254,9 @@
                 <div class="form-group"><label>🔢 Nº Matrícula</label><input type="text" id="editNumeroMatricula"></div>
                 <div class="form-group"><label>📝 Obs</label><textarea id="editObservacoes" rows="2"></textarea></div>
                 <div class="form-group"><label>📸 Fotos Atuais</label><div id="editCurrentPhotos"></div></div>
-                <div class="form-group"><label>➕ Novas Fotos</label><div class="photo-upload-area"><div>📷 Adicionar</div><input type="file" id="editFotos" accept="image/*" multiple onchange="previewPhotos(this, 'editPhotoPreviewGrid')"></div><div class="photo-preview-grid" id="editPhotoPreviewGrid"></div></div>
+                <div class="form-group"><label>➕ Novas Fotos</label><div class="photo-upload-area"><div>📷 Adicionar</div><input type="file" id="editFotos" accept="image/*" multiple></div><div class="photo-preview-grid" id="editPhotoPreviewGrid"></div></div>
                 <button type="submit" class="btn btn-primary">💾 Salvar</button>
-                <button type="button" class="btn btn-danger" onclick="confirmDelete()">🗑️ Excluir</button>
+                <button type="button" class="btn btn-danger" id="deleteBtn">🗑️ Excluir</button>
             </form>
         </div>
     </div>
@@ -264,40 +264,107 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        let SUPABASE_URL = localStorage.getItem('supabase_url') || '';
-        let SUPABASE_KEY = localStorage.getItem('supabase_key') || '';
-        let OWNER_WHATSAPP = localStorage.getItem('owner_whatsapp') || '';
-        let OWNER_NAME = localStorage.getItem('owner_name') || '';
-        let supabase = null, properties = [], editingId = null, pendingPhotos = [], editPendingPhotos = [], editCurrentPhotos = [], isViewerMode = false;
+        // Variáveis globais
+        var SUPABASE_URL = localStorage.getItem('supabase_url') || '';
+        var SUPABASE_KEY = localStorage.getItem('supabase_key') || '';
+        var OWNER_WHATSAPP = localStorage.getItem('owner_whatsapp') || '';
+        var OWNER_NAME = localStorage.getItem('owner_name') || '';
+        var supabaseClient = null;
+        var properties = [];
+        var editingId = null;
+        var pendingPhotos = [];
+        var editPendingPhotos = [];
+        var editCurrentPhotos = [];
+        var isViewerMode = false;
+
+        // Elementos DOM
+        var configBanner = document.getElementById('configBanner');
+        var mainHeader = document.getElementById('mainHeader');
+        var viewerHeader = document.getElementById('viewerHeader');
+        var adminTabs = document.getElementById('adminTabs');
+        var cadastroSection = document.getElementById('cadastro');
+        var catalogoSection = document.getElementById('catalogo');
+        var configModal = document.getElementById('configModal');
+        var shareCatalogModal = document.getElementById('shareCatalogModal');
+        var editModal = document.getElementById('editModal');
+        var propertyList = document.getElementById('propertyList');
+        var loadingState = document.getElementById('loadingState');
+        var emptyState = document.getElementById('emptyState');
+        var toast = document.getElementById('toast');
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            checkViewerMode();
+            initSupabase();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Config
+            document.getElementById('btnConfig').addEventListener('click', openConfigModal);
+            document.getElementById('btnConfig2').addEventListener('click', openConfigModal);
+            document.getElementById('closeConfig').addEventListener('click', closeConfigModal);
+            document.getElementById('saveConfig').addEventListener('click', saveConfig);
+            
+            // Share
+            document.getElementById('btnShareCatalog').addEventListener('click', openShareCatalogModal);
+            document.getElementById('closeShare').addEventListener('click', closeShareCatalogModal);
+            document.getElementById('copyLink').addEventListener('click', copyCatalogLink);
+            document.getElementById('shareWhatsApp').addEventListener('click', shareCatalogWhatsApp);
+            
+            // Tabs
+            document.getElementById('tabCadastro').addEventListener('click', function() { showTab('cadastro'); });
+            document.getElementById('tabCatalogo').addEventListener('click', function() { showTab('catalogo'); });
+            document.getElementById('fabAdd').addEventListener('click', function() { showTab('cadastro'); });
+            
+            // Forms
+            document.getElementById('propertyForm').addEventListener('submit', handlePropertySubmit);
+            document.getElementById('editForm').addEventListener('submit', handleEditSubmit);
+            document.getElementById('deleteBtn').addEventListener('click', confirmDelete);
+            document.getElementById('closeEdit').addEventListener('click', closeEditModal);
+            
+            // Photos
+            document.getElementById('fotos').addEventListener('change', function() { previewPhotos(this, 'photoPreviewGrid', false); });
+            document.getElementById('editFotos').addEventListener('change', function() { previewPhotos(this, 'editPhotoPreviewGrid', true); });
+            
+            // Search
+            document.getElementById('searchInput').addEventListener('input', filterProperties);
+            
+            // Currency
+            document.getElementById('valor').addEventListener('input', function() { formatCurrency(this); });
+            document.getElementById('editValor').addEventListener('input', function() { formatCurrency(this); });
+        }
 
         function checkViewerMode() {
             isViewerMode = new URLSearchParams(window.location.search).has('view');
             if (isViewerMode) {
-                document.getElementById('configBanner').style.display = 'none';
-                document.getElementById('mainHeader').style.display = 'none';
-                document.getElementById('viewerHeader').style.display = 'block';
-                document.getElementById('adminTabs').style.display = 'none';
-                document.getElementById('cadastro').style.display = 'none';
-                document.getElementById('catalogo').classList.add('active');
-                document.getElementById('catalogo').style.display = 'block';
+                configBanner.style.display = 'none';
+                mainHeader.style.display = 'none';
+                viewerHeader.style.display = 'block';
+                adminTabs.style.display = 'none';
+                cadastroSection.style.display = 'none';
+                catalogoSection.classList.add('active');
+                catalogoSection.style.display = 'block';
                 document.getElementById('fabAdd').style.display = 'none';
                 if (OWNER_WHATSAPP) {
-                    const btn = document.getElementById('contactBtn');
+                    var btn = document.getElementById('contactBtn');
                     btn.style.display = 'block';
                     btn.href = 'https://wa.me/' + OWNER_WHATSAPP + '?text=Olá! Vi seu catálogo e tenho interesse.';
                 }
-                if (OWNER_NAME) document.getElementById('viewerSubtitle').textContent = 'Catálogo de ' + OWNER_NAME;
+                if (OWNER_NAME) {
+                    document.getElementById('viewerSubtitle').textContent = 'Catálogo de ' + OWNER_NAME;
+                }
             }
         }
 
         function initSupabase() {
             if (SUPABASE_URL && SUPABASE_KEY) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                document.getElementById('configBanner').style.display = 'none';
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                configBanner.style.display = 'none';
                 if (!isViewerMode) {
-                    document.getElementById('mainHeader').style.display = 'block';
-                    document.getElementById('adminTabs').style.display = 'flex';
-                    document.getElementById('cadastro').classList.add('active');
+                    mainHeader.style.display = 'block';
+                    adminTabs.style.display = 'flex';
+                    cadastroSection.classList.add('active');
                 }
                 loadProperties();
                 return true;
@@ -310,9 +377,12 @@
             document.getElementById('supabaseKey').value = SUPABASE_KEY;
             document.getElementById('whatsappNumber').value = OWNER_WHATSAPP;
             document.getElementById('ownerName').value = OWNER_NAME;
-            document.getElementById('configModal').classList.add('active');
+            configModal.classList.add('active');
         }
-        function closeConfigModal() { document.getElementById('configModal').classList.remove('active'); }
+
+        function closeConfigModal() {
+            configModal.classList.remove('active');
+        }
 
         function saveConfig() {
             SUPABASE_URL = document.getElementById('supabaseUrl').value.trim();
@@ -324,45 +394,85 @@
             localStorage.setItem('owner_whatsapp', OWNER_WHATSAPP);
             localStorage.setItem('owner_name', OWNER_NAME);
             closeConfigModal();
-            initSupabase() ? showToast('✅ Salvo!') : showToast('❌ Preencha tudo');
+            if (initSupabase()) {
+                showToast('✅ Salvo!');
+            } else {
+                showToast('❌ Preencha tudo');
+            }
+        }
+
+        function openShareCatalogModal() {
+            document.getElementById('catalogLinkBox').textContent = location.origin + location.pathname + '?view=1';
+            shareCatalogModal.classList.add('active');
+        }
+
+        function closeShareCatalogModal() {
+            shareCatalogModal.classList.remove('active');
+        }
+
+        function copyCatalogLink() {
+            navigator.clipboard.writeText(document.getElementById('catalogLinkBox').textContent);
+            showToast('📋 Copiado!');
+        }
+
+        function shareCatalogWhatsApp() {
+            var t = '🏠 *Catálogo de Imóveis' + (OWNER_NAME ? ' - ' + OWNER_NAME : '') + '*\n\nVeja os imóveis com fotos:\n' + document.getElementById('catalogLinkBox').textContent;
+            window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank');
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.form-section').forEach(function(s) { s.classList.remove('active'); });
+            if (tab === 'cadastro') {
+                document.getElementById('tabCadastro').classList.add('active');
+                cadastroSection.classList.add('active');
+                document.getElementById('fabAdd').classList.remove('show');
+            } else {
+                document.getElementById('tabCatalogo').classList.add('active');
+                catalogoSection.classList.add('active');
+                if (!isViewerMode) document.getElementById('fabAdd').classList.add('show');
+                loadProperties();
+            }
         }
 
         async function loadProperties() {
-            document.getElementById('loadingState').style.display = 'block';
-            document.getElementById('propertyList').innerHTML = '';
+            loadingState.style.display = 'block';
+            propertyList.innerHTML = '';
             try {
-                const { data, error } = await supabase.from('imoveis').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
-                properties = data || [];
+                var result = await supabaseClient.from('imoveis').select('*').order('created_at', { ascending: false });
+                if (result.error) throw result.error;
+                properties = result.data || [];
                 updateStats();
                 renderProperties();
-            } catch (e) { console.error(e); showToast('❌ Erro'); }
-            document.getElementById('loadingState').style.display = 'none';
+            } catch (e) {
+                console.error(e);
+                showToast('❌ Erro');
+            }
+            loadingState.style.display = 'none';
         }
 
         function updateStats() {
             document.getElementById('totalImoveis').textContent = properties.length;
-            const total = properties.reduce((s, p) => s + (parseFloat(String(p.valor).replace(/\D/g, '')) || 0), 0);
+            var total = properties.reduce(function(s, p) { return s + (parseFloat(String(p.valor).replace(/\D/g, '')) || 0); }, 0);
             document.getElementById('valorTotal').textContent = total >= 1e6 ? 'R$ ' + (total/1e6).toFixed(1) + 'M' : total >= 1e3 ? 'R$ ' + (total/1e3).toFixed(0) + 'K' : 'R$ ' + total;
         }
 
         function formatCurrency(el) {
-            let v = el.value.replace(/\D/g, '');
+            var v = el.value.replace(/\D/g, '');
             if (!v) { el.value = ''; return; }
             v = (parseInt(v) / 100).toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
             el.value = 'R$ ' + v;
         }
 
-        function previewPhotos(input, gridId) {
-            const grid = document.getElementById(gridId);
+        function previewPhotos(input, gridId, isEdit) {
+            var grid = document.getElementById(gridId);
             grid.innerHTML = '';
-            const isEdit = gridId === 'editPhotoPreviewGrid';
-            if (isEdit) editPendingPhotos = []; else pendingPhotos = [];
-            Array.from(input.files).slice(0, 5).forEach((file, i) => {
-                (isEdit ? editPendingPhotos : pendingPhotos).push(file);
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const div = document.createElement('div');
+            if (isEdit) { editPendingPhotos = []; } else { pendingPhotos = []; }
+            Array.from(input.files).slice(0, 5).forEach(function(file, i) {
+                if (isEdit) { editPendingPhotos.push(file); } else { pendingPhotos.push(file); }
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var div = document.createElement('div');
                     div.className = 'photo-preview-item';
                     div.innerHTML = '<img src="' + e.target.result + '"><button type="button" class="remove-photo" onclick="this.parentElement.remove()">×</button>';
                     grid.appendChild(div);
@@ -372,73 +482,116 @@
         }
 
         function renderCurrentPhotos() {
-            const c = document.getElementById('editCurrentPhotos');
+            var c = document.getElementById('editCurrentPhotos');
             if (!editCurrentPhotos.length) { c.innerHTML = '<p style="color:#8892b0;font-size:0.85rem">Sem fotos</p>'; return; }
-            c.innerHTML = '<div class="photo-preview-grid">' + editCurrentPhotos.map((url, i) => '<div class="photo-preview-item"><img src="' + url + '"><button type="button" class="remove-photo" onclick="removeCurrentPhoto(' + i + ')">×</button></div>').join('') + '</div>';
+            c.innerHTML = '<div class="photo-preview-grid">' + editCurrentPhotos.map(function(url, i) { return '<div class="photo-preview-item"><img src="' + url + '"><button type="button" class="remove-photo" onclick="removeCurrentPhoto(' + i + ')">×</button></div>'; }).join('') + '</div>';
         }
 
-        function removeCurrentPhoto(i) { editCurrentPhotos.splice(i, 1); renderCurrentPhotos(); }
+        function removeCurrentPhoto(i) {
+            editCurrentPhotos.splice(i, 1);
+            renderCurrentPhotos();
+        }
 
         async function uploadPhotos(id, files) {
-            const urls = [];
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i], ext = file.name.split('.').pop(), name = id + '/' + Date.now() + '_' + i + '.' + ext;
-                const { error } = await supabase.storage.from('imoveis-fotos').upload(name, file);
-                if (!error) urls.push(supabase.storage.from('imoveis-fotos').getPublicUrl(name).data.publicUrl);
+            var urls = [];
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var ext = file.name.split('.').pop();
+                var name = id + '/' + Date.now() + '_' + i + '.' + ext;
+                var result = await supabaseClient.storage.from('imoveis-fotos').upload(name, file);
+                if (!result.error) {
+                    urls.push(supabaseClient.storage.from('imoveis-fotos').getPublicUrl(name).data.publicUrl);
+                }
             }
             return urls;
         }
 
-        function showTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
-            document.querySelector('.tab:nth-child(' + (tab === 'cadastro' ? 1 : 2) + ')').classList.add('active');
-            document.getElementById(tab).classList.add('active');
-            document.getElementById('fabAdd').classList.toggle('show', tab === 'catalogo' && !isViewerMode);
-            if (tab === 'catalogo') loadProperties();
-        }
-
-        document.getElementById('propertyForm').addEventListener('submit', async function(e) {
+        async function handlePropertySubmit(e) {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true; btn.textContent = '⏳ Salvando...';
+            var btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Salvando...';
             try {
-                const data = { nome: document.getElementById('nome').value, endereco: document.getElementById('endereco').value, valor: document.getElementById('valor').value, avaliacao: document.getElementById('avaliacao').value, tem_matricula: document.getElementById('temMatricula').value, numero_matricula: document.getElementById('numeroMatricula').value || null, observacoes: document.getElementById('observacoes').value || null, fotos: [] };
-                const { data: d, error } = await supabase.from('imoveis').insert([data]).select().single();
-                if (error) throw error;
+                var data = {
+                    nome: document.getElementById('nome').value,
+                    endereco: document.getElementById('endereco').value,
+                    valor: document.getElementById('valor').value,
+                    avaliacao: document.getElementById('avaliacao').value,
+                    tem_matricula: document.getElementById('temMatricula').value,
+                    numero_matricula: document.getElementById('numeroMatricula').value || null,
+                    observacoes: document.getElementById('observacoes').value || null,
+                    fotos: []
+                };
+                var result = await supabaseClient.from('imoveis').insert([data]).select().single();
+                if (result.error) throw result.error;
                 if (pendingPhotos.length) {
-                    const urls = await uploadPhotos(d.id, pendingPhotos);
-                    await supabase.from('imoveis').update({ fotos: urls }).eq('id', d.id);
+                    var urls = await uploadPhotos(result.data.id, pendingPhotos);
+                    await supabaseClient.from('imoveis').update({ fotos: urls }).eq('id', result.data.id);
                 }
                 document.getElementById('propertyForm').reset();
                 document.getElementById('photoPreviewGrid').innerHTML = '';
                 pendingPhotos = [];
                 showToast('✅ Cadastrado!');
-                setTimeout(() => showTab('catalogo'), 500);
-            } catch (e) { console.error(e); showToast('❌ Erro'); }
-            btn.disabled = false; btn.textContent = '✅ Cadastrar Imóvel';
-        });
+                setTimeout(function() { showTab('catalogo'); }, 500);
+            } catch (e) {
+                console.error(e);
+                showToast('❌ Erro');
+            }
+            btn.disabled = false;
+            btn.textContent = '✅ Cadastrar Imóvel';
+        }
 
         function renderProperties() {
-            const list = document.getElementById('propertyList'), empty = document.getElementById('emptyState'), search = (document.getElementById('searchInput')?.value || '').toLowerCase();
-            const filtered = properties.filter(p => p.nome.toLowerCase().includes(search) || p.endereco.toLowerCase().includes(search));
-            if (!filtered.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
-            empty.style.display = 'none';
-            list.innerHTML = filtered.map(p => {
-                const fotos = p.fotos || [], has = fotos.length > 0;
-                return '<div class="property-card"><div class="property-image-carousel" data-id="' + p.id + '" data-index="0">' + (has ? '<img src="' + fotos[0] + '" id="carousel-img-' + p.id + '">' + (fotos.length > 1 ? '<button class="carousel-btn prev" onclick="carouselNav(\'' + p.id + '\',-1,event)">‹</button><button class="carousel-btn next" onclick="carouselNav(\'' + p.id + '\',1,event)">›</button><div class="carousel-nav">' + fotos.map((_, i) => '<div class="carousel-dot' + (i === 0 ? ' active' : '') + '" onclick="carouselGo(\'' + p.id + '\',' + i + ',event)"></div>').join('') + '</div>' : '') + '<span class="image-count">📷 ' + fotos.length + '</span>' : '<div class="no-image">🏠</div>') + '</div><div class="property-info"><div class="property-name">' + p.nome + '</div><div class="property-address">📍 ' + p.endereco + '</div><div class="property-price">' + p.valor + '</div>' + (p.numero_matricula ? '<div class="property-matricula">📄 Matrícula nº <strong>' + p.numero_matricula + '</strong></div>' : '') + '<div class="property-tags"><span class="tag ' + (p.avaliacao === 'sim' ? 'tag-green' : p.avaliacao === 'andamento' ? 'tag-yellow' : 'tag-red') + '">' + (p.avaliacao === 'sim' ? '✅ Avaliado' : p.avaliacao === 'andamento' ? '⏳ Avaliando' : '❌ Sem avaliação') + '</span><span class="tag ' + (p.tem_matricula === 'sim' ? 'tag-green' : p.tem_matricula === 'terceiro' ? 'tag-yellow' : 'tag-red') + '">' + (p.tem_matricula === 'sim' ? '📄 Matrícula OK' : p.tem_matricula === 'terceiro' ? '👤 Terceiro' : '❌ Sem matrícula') + '</span></div>' + (p.observacoes ? '<div class="property-obs">📝 ' + p.observacoes + '</div>' : '') + (!isViewerMode ? '<div class="property-actions"><button class="action-btn edit" onclick="openEditModal(\'' + p.id + '\')">✏️ Editar</button><button class="action-btn share" onclick="shareProperty(\'' + p.id + '\')">📤 WhatsApp</button></div>' : '') + '</div></div>';
+            var search = (document.getElementById('searchInput').value || '').toLowerCase();
+            var filtered = properties.filter(function(p) {
+                return p.nome.toLowerCase().indexOf(search) >= 0 || p.endereco.toLowerCase().indexOf(search) >= 0;
+            });
+            if (!filtered.length) {
+                propertyList.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+            propertyList.innerHTML = filtered.map(function(p) {
+                var fotos = p.fotos || [];
+                var has = fotos.length > 0;
+                return '<div class="property-card"><div class="property-image-carousel" data-id="' + p.id + '" data-index="0">' + (has ? '<img src="' + fotos[0] + '" id="carousel-img-' + p.id + '">' + (fotos.length > 1 ? '<button class="carousel-btn prev" onclick="carouselNav(\'' + p.id + '\',-1,event)">‹</button><button class="carousel-btn next" onclick="carouselNav(\'' + p.id + '\',1,event)">›</button><div class="carousel-nav">' + fotos.map(function(_, i) { return '<div class="carousel-dot' + (i === 0 ? ' active' : '') + '" onclick="carouselGo(\'' + p.id + '\',' + i + ',event)"></div>'; }).join('') + '</div>' : '') + '<span class="image-count">📷 ' + fotos.length + '</span>' : '<div class="no-image">🏠</div>') + '</div><div class="property-info"><div class="property-name">' + p.nome + '</div><div class="property-address">📍 ' + p.endereco + '</div><div class="property-price">' + p.valor + '</div>' + (p.numero_matricula ? '<div class="property-matricula">📄 Matrícula nº <strong>' + p.numero_matricula + '</strong></div>' : '') + '<div class="property-tags"><span class="tag ' + (p.avaliacao === 'sim' ? 'tag-green' : p.avaliacao === 'andamento' ? 'tag-yellow' : 'tag-red') + '">' + (p.avaliacao === 'sim' ? '✅ Avaliado' : p.avaliacao === 'andamento' ? '⏳ Avaliando' : '❌ Sem avaliação') + '</span><span class="tag ' + (p.tem_matricula === 'sim' ? 'tag-green' : p.tem_matricula === 'terceiro' ? 'tag-yellow' : 'tag-red') + '">' + (p.tem_matricula === 'sim' ? '📄 Matrícula OK' : p.tem_matricula === 'terceiro' ? '👤 Terceiro' : '❌ Sem matrícula') + '</span></div>' + (p.observacoes ? '<div class="property-obs">📝 ' + p.observacoes + '</div>' : '') + (!isViewerMode ? '<div class="property-actions"><button class="action-btn edit" onclick="openEditModal(\'' + p.id + '\')">✏️ Editar</button><button class="action-btn share" onclick="shareProperty(\'' + p.id + '\')">📤 WhatsApp</button></div>' : '') + '</div></div>';
             }).join('');
         }
 
-        function carouselNav(id, dir, e) { e?.stopPropagation(); const p = properties.find(x => x.id === id); if (!p?.fotos) return; const c = document.querySelector('.property-image-carousel[data-id="' + id + '"]'); let i = parseInt(c.dataset.index) + dir; if (i < 0) i = p.fotos.length - 1; if (i >= p.fotos.length) i = 0; updateCarousel(id, i, p.fotos); }
-        function carouselGo(id, i, e) { e?.stopPropagation(); const p = properties.find(x => x.id === id); if (p?.fotos) updateCarousel(id, i, p.fotos); }
-        function updateCarousel(id, i, fotos) { const c = document.querySelector('.property-image-carousel[data-id="' + id + '"]'); c.dataset.index = i; document.getElementById('carousel-img-' + id).src = fotos[i]; c.querySelectorAll('.carousel-dot').forEach((d, j) => d.classList.toggle('active', j === i)); }
-        function filterProperties() { renderProperties(); }
+        function carouselNav(id, dir, e) {
+            if (e) e.stopPropagation();
+            var p = properties.find(function(x) { return x.id === id; });
+            if (!p || !p.fotos) return;
+            var c = document.querySelector('.property-image-carousel[data-id="' + id + '"]');
+            var i = parseInt(c.dataset.index) + dir;
+            if (i < 0) i = p.fotos.length - 1;
+            if (i >= p.fotos.length) i = 0;
+            updateCarousel(id, i, p.fotos);
+        }
+
+        function carouselGo(id, i, e) {
+            if (e) e.stopPropagation();
+            var p = properties.find(function(x) { return x.id === id; });
+            if (p && p.fotos) updateCarousel(id, i, p.fotos);
+        }
+
+        function updateCarousel(id, i, fotos) {
+            var c = document.querySelector('.property-image-carousel[data-id="' + id + '"]');
+            c.dataset.index = i;
+            document.getElementById('carousel-img-' + id).src = fotos[i];
+            c.querySelectorAll('.carousel-dot').forEach(function(d, j) { d.classList.toggle('active', j === i); });
+        }
+
+        function filterProperties() {
+            renderProperties();
+        }
 
         function openEditModal(id) {
-            const p = properties.find(x => x.id === id); if (!p) return;
+            var p = properties.find(function(x) { return x.id === id; });
+            if (!p) return;
             editingId = id;
-            editCurrentPhotos = [...(p.fotos || [])];
+            editCurrentPhotos = (p.fotos || []).slice();
             editPendingPhotos = [];
             document.getElementById('editId').value = id;
             document.getElementById('editNome').value = p.nome;
@@ -451,41 +604,67 @@
             renderCurrentPhotos();
             document.getElementById('editPhotoPreviewGrid').innerHTML = '';
             document.getElementById('editFotos').value = '';
-            document.getElementById('editModal').classList.add('active');
+            editModal.classList.add('active');
         }
-        function closeEditModal() { document.getElementById('editModal').classList.remove('active'); editingId = null; }
 
-        document.getElementById('editForm').addEventListener('submit', async function(e) {
+        function closeEditModal() {
+            editModal.classList.remove('active');
+            editingId = null;
+        }
+
+        async function handleEditSubmit(e) {
             e.preventDefault();
             try {
-                let all = [...editCurrentPhotos];
-                if (editPendingPhotos.length) all = [...all, ...(await uploadPhotos(editingId, editPendingPhotos))];
-                await supabase.from('imoveis').update({ nome: document.getElementById('editNome').value, endereco: document.getElementById('editEndereco').value, valor: document.getElementById('editValor').value, avaliacao: document.getElementById('editAvaliacao').value, tem_matricula: document.getElementById('editTemMatricula').value, numero_matricula: document.getElementById('editNumeroMatricula').value || null, observacoes: document.getElementById('editObservacoes').value || null, fotos: all }).eq('id', editingId);
-                closeEditModal(); loadProperties(); showToast('✅ Atualizado!');
-            } catch (e) { console.error(e); showToast('❌ Erro'); }
-        });
+                var all = editCurrentPhotos.slice();
+                if (editPendingPhotos.length) {
+                    var newUrls = await uploadPhotos(editingId, editPendingPhotos);
+                    all = all.concat(newUrls);
+                }
+                await supabaseClient.from('imoveis').update({
+                    nome: document.getElementById('editNome').value,
+                    endereco: document.getElementById('editEndereco').value,
+                    valor: document.getElementById('editValor').value,
+                    avaliacao: document.getElementById('editAvaliacao').value,
+                    tem_matricula: document.getElementById('editTemMatricula').value,
+                    numero_matricula: document.getElementById('editNumeroMatricula').value || null,
+                    observacoes: document.getElementById('editObservacoes').value || null,
+                    fotos: all
+                }).eq('id', editingId);
+                closeEditModal();
+                loadProperties();
+                showToast('✅ Atualizado!');
+            } catch (e) {
+                console.error(e);
+                showToast('❌ Erro');
+            }
+        }
 
-        function confirmDelete() { if (confirm('Excluir este imóvel?')) deleteProperty(); }
-        async function deleteProperty() { await supabase.from('imoveis').delete().eq('id', editingId); closeEditModal(); loadProperties(); showToast('🗑️ Excluído'); }
+        function confirmDelete() {
+            if (confirm('Excluir este imóvel?')) deleteProperty();
+        }
+
+        async function deleteProperty() {
+            await supabaseClient.from('imoveis').delete().eq('id', editingId);
+            closeEditModal();
+            loadProperties();
+            showToast('🗑️ Excluído');
+        }
 
         function shareProperty(id) {
-            const p = properties.find(x => x.id === id); if (!p) return;
-            const link = location.origin + location.pathname + '?view=1';
-            let t = '🏠 *' + p.nome + '*\n\n📍 ' + p.endereco + '\n💰 *' + p.valor + '*\n';
+            var p = properties.find(function(x) { return x.id === id; });
+            if (!p) return;
+            var link = location.origin + location.pathname + '?view=1';
+            var t = '🏠 *' + p.nome + '*\n\n📍 ' + p.endereco + '\n💰 *' + p.valor + '*\n';
             if (p.numero_matricula) t += '📄 Matrícula: *' + p.numero_matricula + '*\n';
             t += '\n🔗 *Ver catálogo com fotos:*\n' + link;
             window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank');
         }
 
-        function openShareCatalogModal() { document.getElementById('catalogLinkBox').textContent = location.origin + location.pathname + '?view=1'; document.getElementById('shareCatalogModal').classList.add('active'); }
-        function closeShareCatalogModal() { document.getElementById('shareCatalogModal').classList.remove('active'); }
-        function copyCatalogLink() { navigator.clipboard.writeText(document.getElementById('catalogLinkBox').textContent); showToast('📋 Copiado!'); }
-        function shareCatalogWhatsApp() { const t = '🏠 *Catálogo de Imóveis' + (OWNER_NAME ? ' - ' + OWNER_NAME : '') + '*\n\nVeja os imóveis com fotos:\n' + document.getElementById('catalogLinkBox').textContent; window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank'); }
-
-        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
-
-        checkViewerMode();
-        initSupabase();
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(function() { toast.classList.remove('show'); }, 2500);
+        }
     </script>
 </body>
 </html>
