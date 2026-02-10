@@ -47,6 +47,7 @@
         .btn-danger { background: #ff6b6b; color: #fff; }
         .btn-whatsapp { background: #25D366; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-share-link { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
+        .btn-pdf { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 0.9rem; }
         .property-list { display: flex; flex-direction: column; gap: 16px; }
         .property-card { background: rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
         .property-image-carousel { position: relative; width: 100%; height: 200px; background: rgba(255,255,255,0.1); }
@@ -102,6 +103,16 @@
         .fab.show { display: flex; }
         .header-buttons { display: flex; gap: 10px; margin-top: 15px; justify-content: center; }
         .header-buttons .btn { max-width: 180px; padding: 12px 16px; font-size: 0.9rem; }
+        .pdf-upload-area { border: 2px dashed rgba(231, 76, 60, 0.5); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; position: relative; background: rgba(231, 76, 60, 0.1); }
+        .pdf-upload-area:hover { border-color: #e74c3c; }
+        .pdf-upload-area input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .pdf-preview { background: rgba(231, 76, 60, 0.2); border: 1px solid rgba(231, 76, 60, 0.5); padding: 12px; border-radius: 8px; margin-top: 10px; display: flex; align-items: center; gap: 10px; }
+        .pdf-preview-icon { font-size: 1.5rem; }
+        .pdf-preview-name { flex: 1; font-size: 0.85rem; color: #fff; word-break: break-all; }
+        .pdf-preview-remove { background: #ff6b6b; border: none; border-radius: 50%; width: 24px; height: 24px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .property-pdf { margin-bottom: 12px; }
+        .property-pdf a { display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: #fff; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: 500; font-size: 0.9rem; }
+        .property-pdf a:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -189,6 +200,14 @@
                     </div>
                     <div class="photo-preview-grid" id="photoPreviewGrid"></div>
                 </div>
+                <div class="form-group">
+                    <label>📄 Documento PDF (matrícula, contrato, etc)</label>
+                    <div class="pdf-upload-area">
+                        <div>📎 Toque para adicionar PDF</div>
+                        <input type="file" id="documento" accept="application/pdf">
+                    </div>
+                    <div id="pdfPreview"></div>
+                </div>
                 <button type="submit" class="btn btn-primary" id="submitBtn">✅ Cadastrar Imóvel</button>
             </form>
         </div>
@@ -255,6 +274,8 @@
                 <div class="form-group"><label>📝 Obs</label><textarea id="editObservacoes" rows="2"></textarea></div>
                 <div class="form-group"><label>📸 Fotos Atuais</label><div id="editCurrentPhotos"></div></div>
                 <div class="form-group"><label>➕ Novas Fotos</label><div class="photo-upload-area"><div>📷 Adicionar</div><input type="file" id="editFotos" accept="image/*" multiple></div><div class="photo-preview-grid" id="editPhotoPreviewGrid"></div></div>
+                <div class="form-group"><label>📄 PDF Atual</label><div id="editCurrentPdf"></div></div>
+                <div class="form-group"><label>📎 Novo PDF</label><div class="pdf-upload-area"><div>📎 Adicionar PDF</div><input type="file" id="editDocumento" accept="application/pdf"></div><div id="editPdfPreview"></div></div>
                 <button type="submit" class="btn btn-primary">💾 Salvar</button>
                 <button type="button" class="btn btn-danger" id="deleteBtn">🗑️ Excluir</button>
             </form>
@@ -264,7 +285,6 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // Variáveis globais
         var SUPABASE_URL = localStorage.getItem('supabase_url') || '';
         var SUPABASE_KEY = localStorage.getItem('supabase_key') || '';
         var OWNER_WHATSAPP = localStorage.getItem('owner_whatsapp') || '';
@@ -275,9 +295,11 @@
         var pendingPhotos = [];
         var editPendingPhotos = [];
         var editCurrentPhotos = [];
+        var pendingPdf = null;
+        var editPendingPdf = null;
+        var editCurrentPdfUrl = null;
         var isViewerMode = false;
 
-        // Elementos DOM
         var configBanner = document.getElementById('configBanner');
         var mainHeader = document.getElementById('mainHeader');
         var viewerHeader = document.getElementById('viewerHeader');
@@ -292,7 +314,6 @@
         var emptyState = document.getElementById('emptyState');
         var toast = document.getElementById('toast');
 
-        // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
             checkViewerMode();
             initSupabase();
@@ -300,37 +321,26 @@
         });
 
         function setupEventListeners() {
-            // Config
             document.getElementById('btnConfig').addEventListener('click', openConfigModal);
             document.getElementById('btnConfig2').addEventListener('click', openConfigModal);
             document.getElementById('closeConfig').addEventListener('click', closeConfigModal);
             document.getElementById('saveConfig').addEventListener('click', saveConfig);
-            
-            // Share
             document.getElementById('btnShareCatalog').addEventListener('click', openShareCatalogModal);
             document.getElementById('closeShare').addEventListener('click', closeShareCatalogModal);
             document.getElementById('copyLink').addEventListener('click', copyCatalogLink);
             document.getElementById('shareWhatsApp').addEventListener('click', shareCatalogWhatsApp);
-            
-            // Tabs
             document.getElementById('tabCadastro').addEventListener('click', function() { showTab('cadastro'); });
             document.getElementById('tabCatalogo').addEventListener('click', function() { showTab('catalogo'); });
             document.getElementById('fabAdd').addEventListener('click', function() { showTab('cadastro'); });
-            
-            // Forms
             document.getElementById('propertyForm').addEventListener('submit', handlePropertySubmit);
             document.getElementById('editForm').addEventListener('submit', handleEditSubmit);
             document.getElementById('deleteBtn').addEventListener('click', confirmDelete);
             document.getElementById('closeEdit').addEventListener('click', closeEditModal);
-            
-            // Photos
             document.getElementById('fotos').addEventListener('change', function() { previewPhotos(this, 'photoPreviewGrid', false); });
             document.getElementById('editFotos').addEventListener('change', function() { previewPhotos(this, 'editPhotoPreviewGrid', true); });
-            
-            // Search
+            document.getElementById('documento').addEventListener('change', function() { previewPdf(this, 'pdfPreview', false); });
+            document.getElementById('editDocumento').addEventListener('change', function() { previewPdf(this, 'editPdfPreview', true); });
             document.getElementById('searchInput').addEventListener('input', filterProperties);
-            
-            // Currency
             document.getElementById('valor').addEventListener('input', function() { formatCurrency(this); });
             document.getElementById('editValor').addEventListener('input', function() { formatCurrency(this); });
         }
@@ -351,9 +361,7 @@
                     btn.style.display = 'block';
                     btn.href = 'https://wa.me/' + OWNER_WHATSAPP + '?text=Olá! Vi seu catálogo e tenho interesse.';
                 }
-                if (OWNER_NAME) {
-                    document.getElementById('viewerSubtitle').textContent = 'Catálogo de ' + OWNER_NAME;
-                }
+                if (OWNER_NAME) document.getElementById('viewerSubtitle').textContent = 'Catálogo de ' + OWNER_NAME;
             }
         }
 
@@ -380,9 +388,7 @@
             configModal.classList.add('active');
         }
 
-        function closeConfigModal() {
-            configModal.classList.remove('active');
-        }
+        function closeConfigModal() { configModal.classList.remove('active'); }
 
         function saveConfig() {
             SUPABASE_URL = document.getElementById('supabaseUrl').value.trim();
@@ -394,11 +400,7 @@
             localStorage.setItem('owner_whatsapp', OWNER_WHATSAPP);
             localStorage.setItem('owner_name', OWNER_NAME);
             closeConfigModal();
-            if (initSupabase()) {
-                showToast('✅ Salvo!');
-            } else {
-                showToast('❌ Preencha tudo');
-            }
+            if (initSupabase()) { showToast('✅ Salvo!'); } else { showToast('❌ Preencha tudo'); }
         }
 
         function openShareCatalogModal() {
@@ -406,9 +408,7 @@
             shareCatalogModal.classList.add('active');
         }
 
-        function closeShareCatalogModal() {
-            shareCatalogModal.classList.remove('active');
-        }
+        function closeShareCatalogModal() { shareCatalogModal.classList.remove('active'); }
 
         function copyCatalogLink() {
             navigator.clipboard.writeText(document.getElementById('catalogLinkBox').textContent);
@@ -444,10 +444,7 @@
                 properties = result.data || [];
                 updateStats();
                 renderProperties();
-            } catch (e) {
-                console.error(e);
-                showToast('❌ Erro');
-            }
+            } catch (e) { console.error(e); showToast('❌ Erro'); }
             loadingState.style.display = 'none';
         }
 
@@ -481,16 +478,36 @@
             });
         }
 
+        function previewPdf(input, previewId, isEdit) {
+            var preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                if (isEdit) { editPendingPdf = file; } else { pendingPdf = file; }
+                preview.innerHTML = '<div class="pdf-preview"><span class="pdf-preview-icon">📄</span><span class="pdf-preview-name">' + file.name + '</span><button type="button" class="pdf-preview-remove" onclick="removePdfPreview(\'' + previewId + '\', ' + isEdit + ')">×</button></div>';
+            }
+        }
+
+        function removePdfPreview(previewId, isEdit) {
+            document.getElementById(previewId).innerHTML = '';
+            if (isEdit) { editPendingPdf = null; document.getElementById('editDocumento').value = ''; }
+            else { pendingPdf = null; document.getElementById('documento').value = ''; }
+        }
+
         function renderCurrentPhotos() {
             var c = document.getElementById('editCurrentPhotos');
             if (!editCurrentPhotos.length) { c.innerHTML = '<p style="color:#8892b0;font-size:0.85rem">Sem fotos</p>'; return; }
             c.innerHTML = '<div class="photo-preview-grid">' + editCurrentPhotos.map(function(url, i) { return '<div class="photo-preview-item"><img src="' + url + '"><button type="button" class="remove-photo" onclick="removeCurrentPhoto(' + i + ')">×</button></div>'; }).join('') + '</div>';
         }
 
-        function removeCurrentPhoto(i) {
-            editCurrentPhotos.splice(i, 1);
-            renderCurrentPhotos();
+        function removeCurrentPhoto(i) { editCurrentPhotos.splice(i, 1); renderCurrentPhotos(); }
+
+        function renderCurrentPdf() {
+            var c = document.getElementById('editCurrentPdf');
+            if (!editCurrentPdfUrl) { c.innerHTML = '<p style="color:#8892b0;font-size:0.85rem">Sem documento</p>'; return; }
+            c.innerHTML = '<div class="pdf-preview"><span class="pdf-preview-icon">📄</span><a href="' + editCurrentPdfUrl + '" target="_blank" style="flex:1;color:#64ffda;">Ver PDF atual</a><button type="button" class="pdf-preview-remove" onclick="removeCurrentPdf()">×</button></div>';
         }
+
+        function removeCurrentPdf() { editCurrentPdfUrl = null; renderCurrentPdf(); }
 
         async function uploadPhotos(id, files) {
             var urls = [];
@@ -499,11 +516,16 @@
                 var ext = file.name.split('.').pop();
                 var name = id + '/' + Date.now() + '_' + i + '.' + ext;
                 var result = await supabaseClient.storage.from('imoveis-fotos').upload(name, file);
-                if (!result.error) {
-                    urls.push(supabaseClient.storage.from('imoveis-fotos').getPublicUrl(name).data.publicUrl);
-                }
+                if (!result.error) { urls.push(supabaseClient.storage.from('imoveis-fotos').getPublicUrl(name).data.publicUrl); }
             }
             return urls;
+        }
+
+        async function uploadPdf(id, file) {
+            var name = id + '/documento_' + Date.now() + '.pdf';
+            var result = await supabaseClient.storage.from('imoveis-fotos').upload(name, file);
+            if (!result.error) { return supabaseClient.storage.from('imoveis-fotos').getPublicUrl(name).data.publicUrl; }
+            return null;
         }
 
         async function handlePropertySubmit(e) {
@@ -520,23 +542,23 @@
                     tem_matricula: document.getElementById('temMatricula').value,
                     numero_matricula: document.getElementById('numeroMatricula').value || null,
                     observacoes: document.getElementById('observacoes').value || null,
-                    fotos: []
+                    fotos: [],
+                    documento_url: null
                 };
                 var result = await supabaseClient.from('imoveis').insert([data]).select().single();
                 if (result.error) throw result.error;
-                if (pendingPhotos.length) {
-                    var urls = await uploadPhotos(result.data.id, pendingPhotos);
-                    await supabaseClient.from('imoveis').update({ fotos: urls }).eq('id', result.data.id);
-                }
+                var updates = {};
+                if (pendingPhotos.length) { updates.fotos = await uploadPhotos(result.data.id, pendingPhotos); }
+                if (pendingPdf) { updates.documento_url = await uploadPdf(result.data.id, pendingPdf); }
+                if (Object.keys(updates).length) { await supabaseClient.from('imoveis').update(updates).eq('id', result.data.id); }
                 document.getElementById('propertyForm').reset();
                 document.getElementById('photoPreviewGrid').innerHTML = '';
+                document.getElementById('pdfPreview').innerHTML = '';
                 pendingPhotos = [];
+                pendingPdf = null;
                 showToast('✅ Cadastrado!');
                 setTimeout(function() { showTab('catalogo'); }, 500);
-            } catch (e) {
-                console.error(e);
-                showToast('❌ Erro');
-            }
+            } catch (e) { console.error(e); showToast('❌ Erro'); }
             btn.disabled = false;
             btn.textContent = '✅ Cadastrar Imóvel';
         }
@@ -546,16 +568,13 @@
             var filtered = properties.filter(function(p) {
                 return p.nome.toLowerCase().indexOf(search) >= 0 || p.endereco.toLowerCase().indexOf(search) >= 0;
             });
-            if (!filtered.length) {
-                propertyList.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
+            if (!filtered.length) { propertyList.innerHTML = ''; emptyState.style.display = 'block'; return; }
             emptyState.style.display = 'none';
             propertyList.innerHTML = filtered.map(function(p) {
                 var fotos = p.fotos || [];
                 var has = fotos.length > 0;
-                return '<div class="property-card"><div class="property-image-carousel" data-id="' + p.id + '" data-index="0">' + (has ? '<img src="' + fotos[0] + '" id="carousel-img-' + p.id + '">' + (fotos.length > 1 ? '<button class="carousel-btn prev" onclick="carouselNav(\'' + p.id + '\',-1,event)">‹</button><button class="carousel-btn next" onclick="carouselNav(\'' + p.id + '\',1,event)">›</button><div class="carousel-nav">' + fotos.map(function(_, i) { return '<div class="carousel-dot' + (i === 0 ? ' active' : '') + '" onclick="carouselGo(\'' + p.id + '\',' + i + ',event)"></div>'; }).join('') + '</div>' : '') + '<span class="image-count">📷 ' + fotos.length + '</span>' : '<div class="no-image">🏠</div>') + '</div><div class="property-info"><div class="property-name">' + p.nome + '</div><div class="property-address">📍 ' + p.endereco + '</div><div class="property-price">' + p.valor + '</div>' + (p.numero_matricula ? '<div class="property-matricula">📄 Matrícula nº <strong>' + p.numero_matricula + '</strong></div>' : '') + '<div class="property-tags"><span class="tag ' + (p.avaliacao === 'sim' ? 'tag-green' : p.avaliacao === 'andamento' ? 'tag-yellow' : 'tag-red') + '">' + (p.avaliacao === 'sim' ? '✅ Avaliado' : p.avaliacao === 'andamento' ? '⏳ Avaliando' : '❌ Sem avaliação') + '</span><span class="tag ' + (p.tem_matricula === 'sim' ? 'tag-green' : p.tem_matricula === 'terceiro' ? 'tag-yellow' : 'tag-red') + '">' + (p.tem_matricula === 'sim' ? '📄 Matrícula OK' : p.tem_matricula === 'terceiro' ? '👤 Terceiro' : '❌ Sem matrícula') + '</span></div>' + (p.observacoes ? '<div class="property-obs">📝 ' + p.observacoes + '</div>' : '') + (!isViewerMode ? '<div class="property-actions"><button class="action-btn edit" onclick="openEditModal(\'' + p.id + '\')">✏️ Editar</button><button class="action-btn share" onclick="shareProperty(\'' + p.id + '\')">📤 WhatsApp</button></div>' : '') + '</div></div>';
+                var pdfHtml = p.documento_url ? '<div class="property-pdf"><a href="' + p.documento_url + '" target="_blank">📄 Ver/Baixar Documento PDF</a></div>' : '';
+                return '<div class="property-card"><div class="property-image-carousel" data-id="' + p.id + '" data-index="0">' + (has ? '<img src="' + fotos[0] + '" id="carousel-img-' + p.id + '">' + (fotos.length > 1 ? '<button class="carousel-btn prev" onclick="carouselNav(\'' + p.id + '\',-1,event)">‹</button><button class="carousel-btn next" onclick="carouselNav(\'' + p.id + '\',1,event)">›</button><div class="carousel-nav">' + fotos.map(function(_, i) { return '<div class="carousel-dot' + (i === 0 ? ' active' : '') + '" onclick="carouselGo(\'' + p.id + '\',' + i + ',event)"></div>'; }).join('') + '</div>' : '') + '<span class="image-count">📷 ' + fotos.length + '</span>' : '<div class="no-image">🏠</div>') + '</div><div class="property-info"><div class="property-name">' + p.nome + '</div><div class="property-address">📍 ' + p.endereco + '</div><div class="property-price">' + p.valor + '</div>' + (p.numero_matricula ? '<div class="property-matricula">📄 Matrícula nº <strong>' + p.numero_matricula + '</strong></div>' : '') + '<div class="property-tags"><span class="tag ' + (p.avaliacao === 'sim' ? 'tag-green' : p.avaliacao === 'andamento' ? 'tag-yellow' : 'tag-red') + '">' + (p.avaliacao === 'sim' ? '✅ Avaliado' : p.avaliacao === 'andamento' ? '⏳ Avaliando' : '❌ Sem avaliação') + '</span><span class="tag ' + (p.tem_matricula === 'sim' ? 'tag-green' : p.tem_matricula === 'terceiro' ? 'tag-yellow' : 'tag-red') + '">' + (p.tem_matricula === 'sim' ? '📄 Matrícula OK' : p.tem_matricula === 'terceiro' ? '👤 Terceiro' : '❌ Sem matrícula') + '</span></div>' + (p.observacoes ? '<div class="property-obs">📝 ' + p.observacoes + '</div>' : '') + pdfHtml + (!isViewerMode ? '<div class="property-actions"><button class="action-btn edit" onclick="openEditModal(\'' + p.id + '\')">✏️ Editar</button><button class="action-btn share" onclick="shareProperty(\'' + p.id + '\')">📤 WhatsApp</button></div>' : '') + '</div></div>';
             }).join('');
         }
 
@@ -583,9 +602,7 @@
             c.querySelectorAll('.carousel-dot').forEach(function(d, j) { d.classList.toggle('active', j === i); });
         }
 
-        function filterProperties() {
-            renderProperties();
-        }
+        function filterProperties() { renderProperties(); }
 
         function openEditModal(id) {
             var p = properties.find(function(x) { return x.id === id; });
@@ -593,6 +610,8 @@
             editingId = id;
             editCurrentPhotos = (p.fotos || []).slice();
             editPendingPhotos = [];
+            editCurrentPdfUrl = p.documento_url || null;
+            editPendingPdf = null;
             document.getElementById('editId').value = id;
             document.getElementById('editNome').value = p.nome;
             document.getElementById('editEndereco').value = p.endereco;
@@ -602,24 +621,23 @@
             document.getElementById('editNumeroMatricula').value = p.numero_matricula || '';
             document.getElementById('editObservacoes').value = p.observacoes || '';
             renderCurrentPhotos();
+            renderCurrentPdf();
             document.getElementById('editPhotoPreviewGrid').innerHTML = '';
+            document.getElementById('editPdfPreview').innerHTML = '';
             document.getElementById('editFotos').value = '';
+            document.getElementById('editDocumento').value = '';
             editModal.classList.add('active');
         }
 
-        function closeEditModal() {
-            editModal.classList.remove('active');
-            editingId = null;
-        }
+        function closeEditModal() { editModal.classList.remove('active'); editingId = null; }
 
         async function handleEditSubmit(e) {
             e.preventDefault();
             try {
                 var all = editCurrentPhotos.slice();
-                if (editPendingPhotos.length) {
-                    var newUrls = await uploadPhotos(editingId, editPendingPhotos);
-                    all = all.concat(newUrls);
-                }
+                if (editPendingPhotos.length) { var newUrls = await uploadPhotos(editingId, editPendingPhotos); all = all.concat(newUrls); }
+                var pdfUrl = editCurrentPdfUrl;
+                if (editPendingPdf) { pdfUrl = await uploadPdf(editingId, editPendingPdf); }
                 await supabaseClient.from('imoveis').update({
                     nome: document.getElementById('editNome').value,
                     endereco: document.getElementById('editEndereco').value,
@@ -628,20 +646,16 @@
                     tem_matricula: document.getElementById('editTemMatricula').value,
                     numero_matricula: document.getElementById('editNumeroMatricula').value || null,
                     observacoes: document.getElementById('editObservacoes').value || null,
-                    fotos: all
+                    fotos: all,
+                    documento_url: pdfUrl
                 }).eq('id', editingId);
                 closeEditModal();
                 loadProperties();
                 showToast('✅ Atualizado!');
-            } catch (e) {
-                console.error(e);
-                showToast('❌ Erro');
-            }
+            } catch (e) { console.error(e); showToast('❌ Erro'); }
         }
 
-        function confirmDelete() {
-            if (confirm('Excluir este imóvel?')) deleteProperty();
-        }
+        function confirmDelete() { if (confirm('Excluir este imóvel?')) deleteProperty(); }
 
         async function deleteProperty() {
             await supabaseClient.from('imoveis').delete().eq('id', editingId);
